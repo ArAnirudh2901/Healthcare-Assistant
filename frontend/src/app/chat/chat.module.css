@@ -1,0 +1,251 @@
+.chatWrapper {
+  display: flex;
+  height: 100vh;
+  background-color: var(--background);
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 320px;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+}
+
+.sidebarHeader {
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.newChatBtn {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.historyList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.historyItem {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: var(--transition-all);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.historyItem:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.mainChat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.header {
+  height: 80px;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 40;
+}
+
+.headerInfo h2 {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.headerInfo p {
+  font-size: 0.75rem;
+  color: var(--success);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.headerInfo p::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+}
+
+.chatArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.messageWrapper {
+  display: flex;
+  gap: 1.25rem;
+  max-width: 85%;
+}
+
+.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.ai {
+  align-self: flex-start;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.userAvatar {
+  background: var(--primary);
+  color: white;
+}
+
+.aiAvatar {
+  background: var(--secondary);
+  color: white;
+}
+
+.messageContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agentName {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bubble {
+  padding: 1.25rem 1.5rem;
+  border-radius: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  box-shadow: var(--shadow-sm);
+}
+
+.user .bubble {
+  background: var(--primary);
+  color: white;
+  border-top-right-radius: 4px;
+}
+
+.ai .bubble {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  border-top-left-radius: 4px;
+}
+
+.inputArea {
+  padding: 2rem 3rem 3rem;
+  background: linear-gradient(to top, var(--background) 80%, transparent);
+}
+
+.inputContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.inputBox {
+  width: 100%;
+  padding: 1.25rem 4rem 1.25rem 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  font-size: 1rem;
+  color: var(--foreground);
+  outline: none;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-md);
+}
+
+.inputBox:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px hsla(var(--primary-hue), 85%, 57%, 0.1);
+}
+
+.sendBtn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.sendBtn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.toggleBar {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.toggleItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}

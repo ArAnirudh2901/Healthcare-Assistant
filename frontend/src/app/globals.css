@@ -1,0 +1,137 @@
+:root {
+  /* Light Theme (Default) */
+  --primary-hue: 220;
+  --secondary-hue: 160;
+  --accent-hue: 280;
+  
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  
+  --card: rgba(255, 255, 255, 0.8);
+  --card-foreground: #0f172a;
+  
+  --primary: hsl(var(--primary-hue), 85%, 57%);
+  --primary-dark: hsl(var(--primary-hue), 85%, 45%);
+  --primary-light: hsl(var(--primary-hue), 85%, 95%);
+  
+  --secondary: hsl(var(--secondary-hue), 80%, 45%);
+  --accent: hsl(var(--accent-hue), 70%, 60%);
+  
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  
+  --border: #e2e8f0;
+  --input: #ffffff;
+  
+  --success: #10b981;
+  --error: #ef4444;
+  
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  
+  --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+  
+  --card: rgba(15, 23, 42, 0.8);
+  --card-foreground: #f8fafc;
+  
+  --primary-light: hsla(var(--primary-hue), 85%, 57%, 0.1);
+  
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  
+  --border: #1e293b;
+  --input: #0f172a;
+  
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+.mesh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-color: var(--background);
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(var(--primary-hue), 85%, 57%, 0.08) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(var(--secondary-hue), 80%, 45%, 0.08) 0, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(var(--accent-hue), 70%, 60%, 0.05) 0, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(var(--primary-hue), 85%, 57%, 0.05) 0, transparent 50%);
+}
+
+.dark .mesh-bg {
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(var(--primary-hue), 85%, 57%, 0.15) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(var(--secondary-hue), 80%, 45%, 0.15) 0, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(var(--accent-hue), 70%, 60%, 0.1) 0, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(var(--primary-hue), 85%, 57%, 0.1) 0, transparent 50%);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  transition: var(--transition-all);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up { animation: fadeInUp 0.6s ease forwards; }
+.animate-scale-in { animation: scaleIn 0.5s ease forwards; }
+.animate-fade-in { animation: fadeIn 0.8s ease forwards; }
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
