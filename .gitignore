@@ -55,6 +55,7 @@ Thumbs.db
 # Project Specific
 data/faiss_index/
 backend/data/faiss_index/
+backend/data/uploads/
 backend/server.log
 backend/sql_app.db
 test.db

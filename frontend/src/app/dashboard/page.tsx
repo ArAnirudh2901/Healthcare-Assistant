@@ -28,7 +28,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     setIsMounted(true);
-    
+
     const fetchUserAndReports = async () => {
       try {
         const token = localStorage.getItem('access_token');
@@ -129,7 +129,7 @@ export default function Dashboard() {
       }
 
       const data = await res.json();
-      
+
       const newReport: Report = {
         id: Date.now().toString(),
         name: file.name,
@@ -139,7 +139,7 @@ export default function Dashboard() {
         url: data.azure_url,
         blobName: data.blob_name
       };
-      
+
       setReports(prev => [newReport, ...prev]);
       alert('Report successfully uploaded to Azure and indexed!');
     } catch (error: any) {
@@ -154,13 +154,13 @@ export default function Dashboard() {
   return (
     <div className={styles.dashboardWrapper}>
       <div className="mesh-bg" />
-      
+
       {/* Sidebar Navigation */}
       <aside className={styles.sidebar}>
         <div className={styles.logo}>
           <span>+</span> KDS Intel
         </div>
-        
+
         <nav className={styles.nav}>
           <Link href="/dashboard" className={styles.navItem + " " + styles.navItemActive}>
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -252,16 +252,16 @@ export default function Dashboard() {
               Upload your medical reports to begin AI-powered orchestration and insights.
             </p>
             <label htmlFor="report-upload" style={{ cursor: 'pointer' }}>
-               <Button as="span" variant="primary">Add Your First Report</Button>
+              <Button as="span" variant="primary">Add Your First Report</Button>
             </label>
           </Card>
         ) : (
           <div className={styles.reportsGrid}>
             {reports.map((report, index) => (
-              <Card 
-                key={report.id} 
-                className={styles.reportCard + " animate-scale-in"} 
-                hoverable 
+              <Card
+                key={report.id}
+                className={styles.reportCard + " animate-scale-in"}
+                hoverable
                 style={{ animationDelay: `${index * 0.1 + 0.3}s` }}
               >
                 <div className={styles.reportHeader}>
@@ -272,7 +272,7 @@ export default function Dashboard() {
                     {report.status}
                   </span>
                 </div>
-                
+
                 <div className={styles.reportTitle}>
                   <h3>{report.name}</h3>
                   <div className={styles.reportMeta}>
@@ -283,16 +283,46 @@ export default function Dashboard() {
                 </div>
 
                 <div className={styles.reportFooter}>
-                  <Button 
-                    variant="primary" 
-                    size="small" 
+                  <Button
+                    variant="primary"
+                    size="small"
                     fullWidth
-                    onClick={() => report.url ? window.open(report.url, '_blank') : alert('Report is still being processed.')}
+                    onClick={async () => {
+                      if (!report.url) {
+                        alert('Report is still being processed.');
+                        return;
+                      }
+
+                      // If it's a full URL (Azure SAS), just open it
+                      if (report.url.startsWith('http')) {
+                        window.open(report.url, '_blank');
+                        return;
+                      }
+
+                      // If it's a local path, fetch with auth
+                      try {
+                        const token = localStorage.getItem('access_token');
+                        const res = await fetch(`http://localhost:8000${report.url}`, {
+                          headers: {
+                            'Authorization': `Bearer ${token}`
+                          }
+                        });
+
+                        if (!res.ok) throw new Error('Failed to fetch file');
+
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, '_blank');
+                      } catch (err) {
+                        console.error('Error opening local file:', err);
+                        alert('Could not open report. Your session may have expired.');
+                      }
+                    }}
                   >
                     View Report
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="small"
                     onClick={() => handleDelete(report)}
                   >

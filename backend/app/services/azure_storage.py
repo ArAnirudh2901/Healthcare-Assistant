@@ -34,7 +34,7 @@ def generate_sas_url(container_name: str, blob_name: str) -> str:
 
     return f"https://{account_name}.blob.core.windows.net/{container_name}/{blob_name}?{sas_token}"
 
-async def upload_file_to_azure(file: UploadFile, user_id: int, container_name: str = "patient-reports") -> tuple[str, str]:
+async def upload_file_to_azure(file: UploadFile, user_id: int, container_name: str = settings.AZURE_CONTAINER_NAME) -> tuple[str, str]:
     """
     Uploads a file to Azure Blob Storage and returns (secure_sas_url, blob_name).
     Sets metadata so files view in browser instead of downloading.
@@ -80,7 +80,7 @@ async def upload_file_to_azure(file: UploadFile, user_id: int, container_name: s
     
     return sas_url, unique_filename
 
-async def delete_file_from_azure(blob_name: str, user_id: int, container_name: str = "patient-reports") -> bool:
+async def delete_file_from_azure(blob_name: str, user_id: int, container_name: str = settings.AZURE_CONTAINER_NAME) -> bool:
     """
     Deletes a file from Azure Blob Storage.
     Verifies that the file belongs to the user.

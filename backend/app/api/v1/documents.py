@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi.responses import FileResponse
 from typing import Any
 from app.api import deps
 from app.models.user import User
@@ -22,10 +23,31 @@ async def upload_document(
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
     try:
-        # Step 1: Upload to Azure (with user prefix)
-        blob_url, blob_name = await upload_file_to_azure(file, user_id=current_user.id)
+        # Step 1: Attempt Upload to Azure
+        try:
+            blob_url, blob_name = await upload_file_to_azure(file, user_id=current_user.id)
+            storage_type = "azure"
+        except Exception as azure_err:
+            print(f"Azure Upload Failed, falling back to local: {str(azure_err)}")
+            # Fallback to local storage
+            import os
+            import uuid
+            upload_dir = "data/uploads"
+            os.makedirs(upload_dir, exist_ok=True)
+            blob_name = f"user_{current_user.id}/{uuid.uuid4()}.pdf"
+            local_path = os.path.join(upload_dir, blob_name)
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            
+            content = await file.read()
+            with open(local_path, "wb") as f:
+                f.write(content)
+            await file.seek(0)
+            
+            blob_url = f"/api/v1/documents/local/{blob_name}" # Placeholder for local serving
+            storage_type = "local"
 
         # Step 2: Extract text and save to user-specific FAISS index
+        # Indexing works locally on the UploadFile stream, independent of Azure
         chunks_indexed = await process_and_index_document(file, user_id=current_user.id)
 
         return {
@@ -33,10 +55,14 @@ async def upload_document(
             "filename": file.filename,
             "azure_url": blob_url,
             "blob_name": blob_name,
-            "chunks_indexed": chunks_indexed
+            "chunks_indexed": chunks_indexed,
+            "storage_type": storage_type
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        import traceback
+        print(f"UPLOAD ERROR: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Critical error during document processing: {str(e)}")
 
 @router.get("/analytical-report")
 async def generate_report(
@@ -108,7 +134,7 @@ async def generate_report(
             "is_sample": True
         }
 
-@router.delete("/{blob_name}")
+@router.delete("/{blob_name:path}")
 async def delete_document(
     blob_name: str,
     current_user: User = Depends(deps.get_current_user),
@@ -117,11 +143,41 @@ async def delete_document(
     Delete a document from Azure storage.
     """
     from app.services.azure_storage import delete_file_from_azure
+    import os
     
-    success = await delete_file_from_azure(blob_name, user_id=current_user.id)
-    if not success:
-        # We still return success if it was likely already deleted or mock data
-        # to ensure frontend stays in sync, but log the warning.
-        return {"message": "Document record removed (Note: storage deletion skipped or failed)"}
+    # 1. Try to delete from Azure
+    azure_success = await delete_file_from_azure(blob_name, user_id=current_user.id)
+    
+    # 2. Try to delete from local storage (if it was a fallback)
+    local_path = os.path.join("data/uploads", blob_name)
+    local_success = False
+    if os.path.exists(local_path):
+        try:
+            os.remove(local_path)
+            local_success = True
+        except Exception as e:
+            print(f"Error deleting local file {local_path}: {e}")
+
+    if not azure_success and not local_success:
+        # We still return success to the frontend if the record is intended to be gone
+        return {"message": "Document record removed (Note: storage cleanup skipped or failed)"}
         
-    return {"message": "Document deleted successfully from Azure"}
+    return {"message": "Document deleted successfully"}
+@router.get("/local/user_{user_id}/{filename}")
+async def serve_local_file(
+    user_id: int,
+    filename: str,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Serve a locally stored document securely.
+    """
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized access to this document.")
+    
+    import os
+    file_path = os.path.join("data/uploads", f"user_{user_id}", filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found.")
+    
+    return FileResponse(file_path)
