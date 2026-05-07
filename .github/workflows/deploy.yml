@@ -57,7 +57,7 @@ jobs:
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_API_URL=https://your-api-url.com
+            NEXT_PUBLIC_API_URL=https://mediflow-backend.thankfulmeadow-e4b3805d.eastasia.azurecontainerapps.io
 
 #  deploy:
 #    needs: build-and-push
