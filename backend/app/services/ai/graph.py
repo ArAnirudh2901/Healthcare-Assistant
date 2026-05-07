@@ -46,9 +46,11 @@ workflow.add_edge("nutrition", END)
 workflow.add_edge("general", END)
 
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 
 # Initialize memory checkpointer
-memory = MemorySaver()
+# In this version of langgraph, JsonPlusSerializer does not take allowed_objects in __init__
+memory = MemorySaver(serde=JsonPlusSerializer())
 
 # Compile the graph with memory
 ai_app = workflow.compile(checkpointer=memory)

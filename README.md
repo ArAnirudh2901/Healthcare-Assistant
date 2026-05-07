@@ -1,4 +1,4 @@
-# KDS Intelligence - Healthcare AI Platform
+# MediHealth - Healthcare AI Platform
 
 A production-grade, multi-agent healthcare AI orchestration platform built with **FastAPI**, **LangGraph**, and **Next.js**. This system enables medical report analysis, patient data isolation, and intelligent clinical consultations using specialized AI agents.
 
@@ -93,4 +93,4 @@ A production-grade, multi-agent healthcare AI orchestration platform built with 
 ---
 
 ## 📝 License
-Proprietary - KDS Intelligence.
+Proprietary - MediHealth.

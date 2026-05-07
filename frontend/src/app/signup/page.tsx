@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { API_BASE_URL } from '@/lib/api';
 import styles from '../auth.module.css';
 
 export default function SignupPage() {
@@ -21,7 +22,7 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/auth/signup', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -58,7 +59,7 @@ export default function SignupPage() {
         <div className={styles.overlay + " animate-slide-up"}>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ width: '32px', height: '32px', background: 'white', color: 'var(--primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</span>
-            KDS Intelligence
+            MediHealth
           </div>
           <h2>Transforming Data <br/>into Diagnostics.</h2>
           <p>Experience the next generation of healthcare AI with multi-turn memory and specialized medical agents.</p>

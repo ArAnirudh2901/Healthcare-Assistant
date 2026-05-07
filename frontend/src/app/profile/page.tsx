@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { API_BASE_URL } from '@/lib/api';
 import styles from './profile.module.css';
 
 interface UserProfile {
@@ -37,7 +38,7 @@ export default function Profile() {
           return;
         }
 
-        const res = await fetch('http://localhost:8000/api/v1/auth/me', {
+        const res = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -255,7 +256,7 @@ export default function Profile() {
             </div>
           ) : (
             <Button variant="outline" fullWidth onClick={handleLogout} style={{ border: '1px solid var(--error)', color: 'var(--error)' }}>
-              Sign Out from KDS
+              Sign Out from MediHealth
             </Button>
           )}
         </div>

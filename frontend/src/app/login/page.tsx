@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { API_BASE_URL } from '@/lib/api';
 import styles from '../auth.module.css';
 
 export default function LoginPage() {
@@ -24,7 +25,7 @@ export default function LoginPage() {
       formData.append('username', email);
       formData.append('password', password);
 
-      const res = await fetch('http://localhost:8000/api/v1/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
@@ -59,7 +60,7 @@ export default function LoginPage() {
         <div className={styles.overlay + " animate-slide-up"}>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ width: '32px', height: '32px', background: 'white', color: 'var(--primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</span>
-            KDS Intelligence
+            MediHealth
           </div>
           <h2>Accelerating Medical <br/>Insights with AI.</h2>
           <p>Join thousands of healthcare professionals using our multi-agent orchestrator for precision diagnostics.</p>
@@ -107,7 +108,7 @@ export default function LoginPage() {
           </form>
 
           <div className={styles.footer}>
-            New to KDS? <Link href="/signup">Create an account</Link>
+            New to MediHealth? <Link href="/signup">Create an account</Link>
           </div>
         </div>
       </div>

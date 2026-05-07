@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { API_BASE_URL } from '@/lib/api';
 import styles from './chat.module.css';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -76,7 +77,7 @@ export default function ChatPage() {
 
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch('http://localhost:8000/api/v1/chat/query', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/chat/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

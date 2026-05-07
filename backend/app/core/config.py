@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 ENV_FILE = Path(__file__).parent.parent.parent / ".env"
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Healthcare AI System"
+    PROJECT_NAME: str = "MediHealth System"
     API_V1_STR: str = "/api/v1"
     
     # SECURITY WARNING: keep the secret key used in production secret!

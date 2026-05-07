@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { API_BASE_URL } from '@/lib/api';
 import styles from './dashboard.module.css';
 
 interface Report {
@@ -37,7 +38,7 @@ export default function Dashboard() {
           return;
         }
 
-        const res = await fetch('http://localhost:8000/api/v1/auth/me', {
+        const res = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -80,7 +81,7 @@ export default function Dashboard() {
     try {
       if (report.blobName) {
         const token = localStorage.getItem('access_token');
-        const res = await fetch(`http://localhost:8000/api/v1/documents/${report.blobName}`, {
+        const res = await fetch(`${API_BASE_URL}/api/v1/documents/${report.blobName}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -114,7 +115,7 @@ export default function Dashboard() {
 
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch('http://localhost:8000/api/v1/documents/upload', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/documents/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -158,7 +159,7 @@ export default function Dashboard() {
       {/* Sidebar Navigation */}
       <aside className={styles.sidebar}>
         <div className={styles.logo}>
-          <span>+</span> KDS Intel
+          <span>+</span> MediHealth
         </div>
 
         <nav className={styles.nav}>
@@ -302,7 +303,7 @@ export default function Dashboard() {
                       // If it's a local path, fetch with auth
                       try {
                         const token = localStorage.getItem('access_token');
-                        const res = await fetch(`http://localhost:8000${report.url}`, {
+                        const res = await fetch(`${API_BASE_URL}${report.url}`, {
                           headers: {
                             'Authorization': `Bearer ${token}`
                           }

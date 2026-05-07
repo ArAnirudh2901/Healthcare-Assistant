@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Healthcare AI System",
+  title: "MediHealth System",
   description: "An intelligent healthcare orchestration platform",
 };
 

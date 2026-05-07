@@ -20,7 +20,7 @@ export default function Home() {
         zIndex: 10
       }}>
         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '-1px' }}>
-          KDS<span style={{ color: 'var(--foreground)' }}>Intelligence</span>
+          Medi<span style={{ color: 'var(--foreground)' }}>Health</span>
         </div>
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
           <Link href="/login" style={{ fontWeight: 500, color: 'var(--muted-foreground)' }}>Login</Link>
@@ -67,7 +67,7 @@ export default function Home() {
             margin: '0 auto 3rem',
             lineHeight: 1.6
           }}>
-            KDS Intelligence orchestrates multi-turn medical agents to provide high-precision diagnostics, report analysis, and clinical decision support.
+            MediHealth orchestrates multi-turn medical agents to provide high-precision diagnostics, report analysis, and clinical decision support.
           </p>
           
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
@@ -111,9 +111,9 @@ export default function Home() {
       {/* Footer */}
       <footer style={{ padding: '4rem 0', borderTop: '1px solid var(--border)', marginTop: '4rem' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>KDS</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>MediHealth</div>
           <div style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
-            © 2026 Kinetix Digital Solutions. All rights reserved.
+            © 2026 MediHealth Solutions. All rights reserved.
           </div>
         </div>
       </footer>

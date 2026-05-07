@@ -4,7 +4,7 @@ from app.services.ai.state import AgentState
 
 # Pydantic is not strictly needed for basic JSON output from Llama3 if we prompt correctly,
 # but using structured output is best. We'll use simple prompting for the router.
-ROUTER_PROMPT = """You are the Support Agent for a Healthcare AI System.
+ROUTER_PROMPT = """You are the Support Agent for a MediHealth System.
 Your job is to analyze the user's query and classify it into one of the following categories:
 
 1. "junior_doctor": For normal or low-severity health issues, general symptoms, or reading basic patient reports.

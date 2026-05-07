@@ -6,6 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend 
 } from 'recharts';
+import { API_BASE_URL } from '@/lib/api';
 import styles from './analysis.module.css';
 
 interface LabParameter {
@@ -41,7 +42,7 @@ export default function AnalysisPage() {
     const fetchReport = async () => {
       try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch('http://localhost:8000/api/v1/documents/analytical-report', {
+        const res = await fetch(`${API_BASE_URL}/api/v1/documents/analytical-report`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -109,7 +110,7 @@ export default function AnalysisPage() {
         <Link href="/dashboard" className={styles.backLink}>
           ← Back to Dashboard
         </Link>
-        <div className="font-bold text-blue-600">KDS Health AI</div>
+        <div className="font-bold text-blue-600">MediHealth AI</div>
       </header>
 
       <main className={styles.mainContent}>
