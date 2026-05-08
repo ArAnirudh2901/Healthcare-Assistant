@@ -6,9 +6,9 @@ def get_llm():
     if not api_key:
         raise ValueError("GROQ_API_KEY environment variable is not set")
     
-    # We use llama-3.3-70b-versatile as the current powerful model
+    # Using a more widely compatible model to avoid 403 errors
     return ChatGroq(
         groq_api_key=api_key,
-        model_name="llama-3.3-70b-versatile",
+        model_name="llama3-70b-8192",
         temperature=0.0
     )
