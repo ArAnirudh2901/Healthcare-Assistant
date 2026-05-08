@@ -9,6 +9,6 @@ def get_llm():
     # Using the lightest model (8b) to bypass any tier-based 403 errors
     return ChatGroq(
         groq_api_key=api_key,
-        model_name="llama3-8b-8192",
+        model_name="llama-3.1-8b-instant",
         temperature=0.0
     )

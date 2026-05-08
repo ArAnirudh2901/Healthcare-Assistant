@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     
     # Database URL
-    # Database URL (Defaults to local SQLite for easier setup)
-    DATABASE_URL: str = "sqlite:///./sql_app.db"
+    # Database URL (Defaults to absolute path for Docker/Azure stability)
+    DATABASE_URL: str = "sqlite:////app/sql_app.db"
     
     # AI API Keys
     GROQ_API_KEY: str = ""

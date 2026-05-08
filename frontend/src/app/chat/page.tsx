@@ -90,7 +90,15 @@ export default function ChatPage() {
       });
 
       if (!res.ok) {
-        throw new Error('Failed to fetch response');
+        let errorMessage = 'Failed to fetch response';
+        try {
+          const data = await res.json();
+          errorMessage = data.detail || errorMessage;
+        } catch (e) {
+          const text = await res.text();
+          errorMessage = text || `Server Error (${res.status})`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await res.json();
@@ -103,11 +111,11 @@ export default function ChatPage() {
       };
 
       setMessages(prev => [...prev, aiMsg]);
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        content: 'Sorry, I encountered an error while processing your request.',
+        content: error.message || 'Sorry, I encountered an error while processing your request.',
         agentName: 'System Error',
       };
       setMessages(prev => [...prev, errorMsg]);
