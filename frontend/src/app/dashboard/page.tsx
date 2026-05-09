@@ -24,6 +24,8 @@ export default function Dashboard() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [riskData, setRiskData] = useState<any>(null);
+  const [isLoadingRisk, setIsLoadingRisk] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -65,7 +67,31 @@ export default function Dashboard() {
     };
 
     fetchUserAndReports();
+    fetchRiskAssessment();
   }, [router]);
+
+  const fetchRiskAssessment = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+
+      setIsLoadingRisk(true);
+      const res = await fetch(`${API_BASE_URL}/api/v1/risk/my-risk`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRiskData(data);
+      }
+    } catch (e) {
+      console.error('Error fetching risk assessment:', e);
+    } finally {
+      setIsLoadingRisk(false);
+    }
+  };
 
   // Sync reports to localStorage whenever they change
   useEffect(() => {
@@ -233,8 +259,10 @@ export default function Dashboard() {
           <Card variant="glass" className={styles.statCard}>
             <div className={styles.statIcon} style={{ background: 'hsla(var(--accent-hue), 80%, 60%, 0.1)', color: 'var(--accent)' }}>⚡</div>
             <div className={styles.statInfo}>
-              <h3>Consultations</h3>
-              <p>12</p>
+              <h3>Risk Status</h3>
+              <p style={{ color: riskData?.overall_status === 'CRITICAL' ? 'var(--destructive)' : (riskData?.overall_status === 'HEALTHY' ? 'var(--success)' : 'inherit') }}>
+                {isLoadingRisk ? 'Analyzing...' : (riskData?.overall_status || 'N/A')}
+              </p>
             </div>
           </Card>
         </div>
