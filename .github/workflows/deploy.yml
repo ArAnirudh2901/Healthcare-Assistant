@@ -59,34 +59,4 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=https://mediflow-backend.thankfulmeadow-e4b3805d.eastasia.azurecontainerapps.io
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Log in to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy Backend to Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          acrName: medihealthreg
-          containerAppName: medihealth-backend
-          resourceGroup: MediHealth-RG
-          imageToDeploy: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:main
-          environmentVariables: |
-            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
-            AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-            SECRET_KEY=${{ secrets.SECRET_KEY }}
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-
-      - name: Deploy Frontend to Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          acrName: medihealthreg
-          containerAppName: medihealth-frontend
-          resourceGroup: MediHealth-RG
-          imageToDeploy: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:main
-          buildArguments: |
-            NEXT_PUBLIC_API_URL=https://medihealth-backend.xxxx.eastus.azurecontainerapps.io
+# Deployment job removed to allow manual setup in Azure Portal
