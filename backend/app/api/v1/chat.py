@@ -71,5 +71,15 @@ async def handle_chat_query(
         }
     except Exception as e:
         import traceback
+        error_msg = str(e)
+        print(f"ERROR in chat query: {error_msg}")
         print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        
+        # Specific check for Groq regional/permission blocks
+        if "403" in error_msg and "Forbidden" in error_msg:
+            raise HTTPException(
+                status_code=500, 
+                detail="Groq API returned 403 Forbidden. This is likely due to regional restrictions in Azure 'eastasia' (Hong Kong). Please redeploy your backend to 'eastus' or 'centralindia'."
+            )
+            
+        raise HTTPException(status_code=500, detail=error_msg)
