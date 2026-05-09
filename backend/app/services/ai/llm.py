@@ -7,7 +7,7 @@ def get_llm():
         print("CRITICAL: GROQ_API_KEY is not set!")
         raise ValueError("GROQ_API_KEY environment variable is not set")
     
-    model = "llama3-8b-8192"
+    model = "llama-3.1-8b-instant"
     print(f"DEBUG: Initializing ChatGroq with model={model}")
     
     return ChatGroq(
