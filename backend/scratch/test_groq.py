@@ -18,7 +18,7 @@ def test_groq():
     try:
         llm = ChatGroq(
             groq_api_key=api_key,
-            model_name="llama-3.1-8b-instant", # Using a smaller modern model for test
+            model_name="llama-3.3-70b-versatile", # Using the versatile 70b model
             temperature=0.0
         )
         response = llm.invoke("Say hello!")
