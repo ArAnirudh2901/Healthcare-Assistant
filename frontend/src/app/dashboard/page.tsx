@@ -261,12 +261,12 @@ export default function Dashboard() {
             <div className={styles.statInfo}>
               <h3>Risk Status</h3>
               <p style={{ 
-                color: riskData?.overall_status === 'CRITICAL' ? 'var(--destructive)' : 
-                       (riskData?.overall_status === 'HEALTHY' ? 'var(--success)' : 
-                       (riskData?.overall_status === 'NO_DATA' || riskData?.overall_status === 'INSUFFICIENT_DATA' ? 'var(--muted-foreground)' : 'inherit')) 
+                color: reports.length === 0 ? 'var(--muted-foreground)' : 
+                       (riskData?.overall_status === 'CRITICAL' ? 'var(--destructive)' : 
+                       (riskData?.overall_status === 'HEALTHY' ? 'var(--success)' : 'inherit')) 
               }}>
                 {isLoadingRisk ? 'Analyzing...' : 
-                 (riskData?.overall_status === 'NO_DATA' || riskData?.overall_status === 'INSUFFICIENT_DATA' ? 'PENDING' : (riskData?.overall_status || 'N/A'))}
+                 (reports.length === 0 ? 'PENDING' : (riskData?.overall_status || 'N/A'))}
               </p>
             </div>
           </Card>
