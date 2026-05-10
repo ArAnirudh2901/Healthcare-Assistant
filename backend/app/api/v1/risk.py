@@ -20,7 +20,7 @@ async def get_user_risk_assessment(
         # 1. Retrieve all medical text for the user
         raw_text = get_all_documents(user_id=current_user.id)
         
-        if "No patient reports" in raw_text:
+        if not raw_text or "No patient reports" in raw_text:
             return RiskAssessmentResponse(
                 overall_status="NO_DATA",
                 assessments=[],

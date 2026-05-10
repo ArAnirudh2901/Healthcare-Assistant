@@ -80,7 +80,7 @@ async def generate_report(
         # 1. Retrieve ONLY this user's indexed medical content
         full_context = get_all_documents(user_id=current_user.id)
         
-        if "No patient reports" in full_context:
+        if not full_context or "No patient reports" in full_context:
             return {
                 "message": "No reports found.",
                 "status": "empty",
