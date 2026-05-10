@@ -142,9 +142,7 @@ export default function ChatPage() {
         </div>
         
         <div className={styles.historyList}>
-          <div className={styles.historyItem}>Blood Report Analysis</div>
-          <div className={styles.historyItem}>Imaging Query - MRI</div>
-          <div className={styles.historyItem}>General Health Inquiry</div>
+          {/* Recent consultations will appear here */}
         </div>
 
         <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
