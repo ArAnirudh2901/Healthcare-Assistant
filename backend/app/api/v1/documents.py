@@ -116,22 +116,10 @@ async def generate_report(
             "status": "success"
         }
     except Exception as e:
-        # Fallback to Sample Data if something fails, to show the UI
         return {
-            "summary": "This is a sample analysis. We encountered an issue parsing your specific report format. Our doctors are reviewing the data. Generally, maintaining a balanced diet and regular exercise is recommended.",
-            "stats": {
-                "total_tests": 5,
-                "high_values": 1,
-                "low_values": 0,
-                "normal_values": 4,
-            },
-            "aggregated_data": [
-                {"test_name": "Hemoglobin", "value": 14.2, "unit": "g/dL", "status": "NORMAL", "category": "CBC"},
-                {"test_name": "Glucose", "value": 125, "unit": "mg/dL", "status": "HIGH", "category": "Diabetes"},
-                {"test_name": "Cholesterol", "value": 180, "unit": "mg/dL", "status": "NORMAL", "category": "Lipid Profile"},
-            ],
-            "status": "success",
-            "is_sample": True
+            "message": f"Error generating report: {str(e)}",
+            "status": "error",
+            "summary": "We encountered an issue generating your analysis. Please try uploading your reports again."
         }
 
 @router.delete("/{blob_name:path}")

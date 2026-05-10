@@ -260,8 +260,13 @@ export default function Dashboard() {
             <div className={styles.statIcon} style={{ background: 'hsla(var(--accent-hue), 80%, 60%, 0.1)', color: 'var(--accent)' }}>⚡</div>
             <div className={styles.statInfo}>
               <h3>Risk Status</h3>
-              <p style={{ color: riskData?.overall_status === 'CRITICAL' ? 'var(--destructive)' : (riskData?.overall_status === 'HEALTHY' ? 'var(--success)' : 'inherit') }}>
-                {isLoadingRisk ? 'Analyzing...' : (riskData?.overall_status || 'N/A')}
+              <p style={{ 
+                color: riskData?.overall_status === 'CRITICAL' ? 'var(--destructive)' : 
+                       (riskData?.overall_status === 'HEALTHY' ? 'var(--success)' : 
+                       (riskData?.overall_status === 'NO_DATA' || riskData?.overall_status === 'INSUFFICIENT_DATA' ? 'var(--muted-foreground)' : 'inherit')) 
+              }}>
+                {isLoadingRisk ? 'Analyzing...' : 
+                 (riskData?.overall_status === 'NO_DATA' || riskData?.overall_status === 'INSUFFICIENT_DATA' ? 'PENDING' : (riskData?.overall_status || 'N/A'))}
               </p>
             </div>
           </Card>
