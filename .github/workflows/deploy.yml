@@ -29,7 +29,7 @@ jobs:
           username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
           password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Backend
+      - name: Extract metadata for Backend
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
@@ -40,10 +40,11 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:latest
+            ${{ steps.meta-backend.outputs.tags }}
 
-      - name: Extract metadata (tags, labels) for Frontend
+      - name: Extract metadata for Frontend
         id: meta-frontend
         uses: docker/metadata-action@v5
         with:
@@ -54,9 +55,8 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ${{ steps.meta-frontend.outputs.tags }}
-          labels: ${{ steps.meta-frontend.outputs.labels }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:latest
+            ${{ steps.meta-frontend.outputs.tags }}
           build-args: |
             NEXT_PUBLIC_API_URL=https://medihealth-backend.gentleflower-c6dee5a7.koreacentral.azurecontainerapps.io
-
-# Deployment job removed to allow manual setup in Azure Portal
