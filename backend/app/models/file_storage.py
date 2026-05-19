@@ -6,6 +6,7 @@ import uuid
 from app.db.base_class import Base
 
 class FileStorage(Base):
+    __tablename__ = "file_storage"
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(Integer, ForeignKey("user.id"), index=True, nullable=False)
     filename = Column(String, index=True, nullable=False)
