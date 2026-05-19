@@ -19,10 +19,6 @@ class Settings(BaseSettings):
     
     # AI API Keys
     GROQ_API_KEY: str = ""
-    
-    # Azure Storage
-    AZURE_STORAGE_CONNECTION_STRING: str = ""
-    AZURE_CONTAINER_NAME: str = "patient-reports"
 
     model_config = {
         "env_file": str(ENV_FILE),

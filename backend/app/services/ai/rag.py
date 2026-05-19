@@ -7,7 +7,9 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 import tempfile
 import random
+from sqlalchemy.orm import Session
 from app.services.pdf_processor import extract_text_from_pdf
+from app.services.db_storage import sync_faiss_to_db, sync_faiss_from_db
 
 FAISS_BASE_PATH = os.path.join(os.path.dirname(__file__), "../../../data/faiss_index")
 
@@ -28,7 +30,7 @@ class MockEmbeddings(Embeddings):
 
 embeddings = MockEmbeddings()
 
-async def process_and_index_document(file: UploadFile, user_id: int):
+async def process_and_index_document(file: UploadFile, user_id: int, db: Session):
     """
     Reads a PDF using custom medical extractor, splits it into chunks, 
     and saves them to the user-specific FAISS index.
@@ -54,8 +56,11 @@ async def process_and_index_document(file: UploadFile, user_id: int):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         chunks = text_splitter.split_documents(documents)
 
+        # Download latest index from DB before modifying
+        sync_faiss_from_db(user_id, user_index_path, db)
+
         # Load existing FAISS index or create a new one for this specific user
-        if os.path.exists(user_index_path):
+        if os.path.exists(user_index_path) and os.path.exists(os.path.join(user_index_path, "index.faiss")):
             vector_store = FAISS.load_local(user_index_path, embeddings, allow_dangerous_deserialization=True)
             vector_store.add_documents(chunks)
         else:
@@ -63,18 +68,24 @@ async def process_and_index_document(file: UploadFile, user_id: int):
             vector_store = FAISS.from_documents(chunks, embeddings)
             
         vector_store.save_local(user_index_path)
+        
+        # Upload updated index to DB
+        sync_faiss_to_db(user_id, user_index_path, db)
+        
         return len(chunks)
     finally:
         os.remove(tmp_path)
         await file.seek(0)
 
-def retrieve_context(query: str, user_id: int, k: int = 3) -> str:
+def retrieve_context(query: str, user_id: int, db: Session, k: int = 3) -> str:
     """
     Searches the user-specific FAISS index for relevant context.
     """
     user_index_path = get_user_index_path(user_id)
     
-    if not os.path.exists(user_index_path):
+    sync_faiss_from_db(user_id, user_index_path, db)
+    
+    if not os.path.exists(user_index_path) or not os.path.exists(os.path.join(user_index_path, "index.faiss")):
         return "No patient reports have been uploaded yet."
 
     vector_store = FAISS.load_local(user_index_path, embeddings, allow_dangerous_deserialization=True)
@@ -86,13 +97,15 @@ def retrieve_context(query: str, user_id: int, k: int = 3) -> str:
     context = "\n\n".join([f"Excerpt from {doc.metadata.get('source_file', 'unknown')}:\n{doc.page_content}" for doc in docs])
     return context
 
-def get_all_documents(user_id: int) -> str:
+def get_all_documents(user_id: int, db: Session) -> str:
     """
     Retrieves ALL text content from the user-specific FAISS index.
     """
     user_index_path = get_user_index_path(user_id)
     
-    if not os.path.exists(user_index_path):
+    sync_faiss_from_db(user_id, user_index_path, db)
+    
+    if not os.path.exists(user_index_path) or not os.path.exists(os.path.join(user_index_path, "index.faiss")):
         return "No patient reports have been uploaded yet."
     
     vector_store = FAISS.load_local(user_index_path, embeddings, allow_dangerous_deserialization=True)

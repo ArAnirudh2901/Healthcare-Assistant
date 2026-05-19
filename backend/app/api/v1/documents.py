@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Response
 from typing import Any
+from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.user import User
-from app.services.azure_storage import upload_file_to_azure
+from app.models.file_storage import FileStorage
+from app.services.db_storage import save_file_to_db, delete_file_from_db
 from app.services.ai.rag import process_and_index_document
 from app.services.analytical_report import get_analytical_report
 
@@ -13,47 +14,28 @@ router = APIRouter()
 async def upload_document(
     file: UploadFile = File(...),
     current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db)
 ) -> Any:
     """
     Upload a patient medical report (PDF).
-    1. Uploads securely to Azure Blob Storage.
-    2. Processes text and stores embeddings in local FAISS Vector DB.
+    1. Uploads to SQL Database.
+    2. Processes text and stores embeddings in local FAISS Vector DB and syncs to SQL DB.
     """
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
     try:
-        # Step 1: Attempt Upload to Azure
-        try:
-            blob_url, blob_name = await upload_file_to_azure(file, user_id=current_user.id)
-            storage_type = "azure"
-        except Exception as azure_err:
-            print(f"Azure Upload Failed, falling back to local: {str(azure_err)}")
-            # Fallback to local storage
-            import os
-            import uuid
-            upload_dir = "data/uploads"
-            os.makedirs(upload_dir, exist_ok=True)
-            blob_name = f"user_{current_user.id}/{uuid.uuid4()}.pdf"
-            local_path = os.path.join(upload_dir, blob_name)
-            os.makedirs(os.path.dirname(local_path), exist_ok=True)
-            
-            content = await file.read()
-            with open(local_path, "wb") as f:
-                f.write(content)
-            await file.seek(0)
-            
-            blob_url = f"/api/v1/documents/local/{blob_name}" # Placeholder for local serving
-            storage_type = "local"
+        # Step 1: Upload to DB
+        blob_url, blob_name = save_file_to_db(file, user_id=current_user.id, db=db)
+        storage_type = "database"
 
         # Step 2: Extract text and save to user-specific FAISS index
-        # Indexing works locally on the UploadFile stream, independent of Azure
-        chunks_indexed = await process_and_index_document(file, user_id=current_user.id)
+        chunks_indexed = await process_and_index_document(file, user_id=current_user.id, db=db)
 
         return {
             "message": "Document uploaded and indexed successfully",
             "filename": file.filename,
-            "azure_url": blob_url,
+            "azure_url": blob_url, # keeping key name for frontend compatibility
             "blob_name": blob_name,
             "chunks_indexed": chunks_indexed,
             "storage_type": storage_type
@@ -67,6 +49,7 @@ async def upload_document(
 @router.get("/analytical-report")
 async def generate_report(
     current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db)
 ) -> Any:
     """
     Generate a health analysis report based on all uploaded data.
@@ -78,7 +61,7 @@ async def generate_report(
 
     try:
         # 1. Retrieve ONLY this user's indexed medical content
-        full_context = get_all_documents(user_id=current_user.id)
+        full_context = get_all_documents(user_id=current_user.id, db=db)
         
         if not full_context or "No patient reports" in full_context:
             return {
@@ -126,46 +109,41 @@ async def generate_report(
 async def delete_document(
     blob_name: str,
     current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db)
 ) -> Any:
     """
-    Delete a document from Azure storage.
+    Delete a document from database storage.
     """
-    from app.services.azure_storage import delete_file_from_azure
-    import os
+    success = delete_file_from_db(blob_name, user_id=current_user.id, db=db)
     
-    # 1. Try to delete from Azure
-    azure_success = await delete_file_from_azure(blob_name, user_id=current_user.id)
-    
-    # 2. Try to delete from local storage (if it was a fallback)
-    local_path = os.path.join("data/uploads", blob_name)
-    local_success = False
-    if os.path.exists(local_path):
-        try:
-            os.remove(local_path)
-            local_success = True
-        except Exception as e:
-            print(f"Error deleting local file {local_path}: {e}")
-
-    if not azure_success and not local_success:
-        # We still return success to the frontend if the record is intended to be gone
+    if not success:
         return {"message": "Document record removed (Note: storage cleanup skipped or failed)"}
         
     return {"message": "Document deleted successfully"}
-@router.get("/local/user_{user_id}/{filename}")
-async def serve_local_file(
-    user_id: int,
-    filename: str,
+
+@router.get("/files/{file_id}")
+async def serve_db_file(
+    file_id: str,
     current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db)
 ) -> Any:
     """
-    Serve a locally stored document securely.
+    Serve a stored document securely from the database.
     """
-    if current_user.id != user_id:
+    db_file = db.query(FileStorage).filter(FileStorage.id == file_id).first()
+    
+    if not db_file:
+        raise HTTPException(status_code=404, detail="File not found.")
+        
+    if db_file.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Unauthorized access to this document.")
     
-    import os
-    file_path = os.path.join("data/uploads", f"user_{user_id}", filename)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found.")
+    media_types = {
+        "pdf": "application/pdf",
+        "png": "image/png",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg"
+    }
+    m_type = media_types.get(db_file.file_type, "application/octet-stream")
     
-    return FileResponse(file_path)
+    return Response(content=db_file.data, media_type=m_type)
