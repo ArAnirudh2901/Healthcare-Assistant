@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     
     # Database URL
     # Database URL (Defaults to absolute path for Docker/Azure stability)
-    DATABASE_URL: str = "sqlite:////app/sql_app.db"
+    DATABASE_URL: str = "sqlite:///sql_app.db"
     
     # AI API Keys
     GROQ_API_KEY: str = ""

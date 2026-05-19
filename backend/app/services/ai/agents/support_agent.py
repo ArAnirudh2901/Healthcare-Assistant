@@ -7,8 +7,8 @@ from app.services.ai.state import AgentState
 ROUTER_PROMPT = """You are the Support Agent for a MediHealth System.
 Your job is to analyze the user's query and classify it into one of the following categories:
 
-1. "junior_doctor": For normal or low-severity health issues, general symptoms, or reading basic patient reports.
-2. "senior_doctor": For complex, high-severity cases, chronic illnesses, or cases requiring deep diagnosis and tool usage.
+1. "senior_doctor": For complex cases, high-severity symptoms, highly abnormal lab results (like very high bilirubin), chronic illnesses, hospital recommendations, or cases requiring deep diagnosis. ALWAYS route abnormal lab values here.
+2. "junior_doctor": ONLY for completely normal or low-severity issues (like a mild cold or general wellness check). Do NOT route severe symptoms or high lab values here.
 3. "nutrition": For queries strictly related to diet, food, lifestyle, and nutrition.
 4. "general": For non-medical questions, greetings, or general support queries.
 

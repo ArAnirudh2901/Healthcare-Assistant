@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: healthcare-agent-backend
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        value: sqlite:////opt/render/project/src/backend/data/sql_app.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GROQ_API_KEY
+        sync: false
+      - key: AZURE_STORAGE_CONNECTION_STRING
+        sync: false
+    disk:
+      name: healthcare-data
+      mountPath: /opt/render/project/src/backend/data
+      sizeGB: 1

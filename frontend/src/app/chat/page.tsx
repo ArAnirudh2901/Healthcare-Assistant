@@ -5,16 +5,20 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { API_BASE_URL } from '@/lib/api';
+import { API_BASE_URL, analyzeInjury } from '@/lib/api';
 import styles from './chat.module.css';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { PhotoUpload } from '@/components/chat/PhotoUpload';
+import { VoiceInput } from '@/components/chat/VoiceInput';
+import { CameraCapture } from '@/components/chat/CameraCapture';
 
 interface Message {
   id: string;
   role: 'user' | 'ai';
   content: string;
   agentName?: string;
+  imageUrl?: string;
 }
 
 export default function ChatPage() {
@@ -29,7 +33,11 @@ export default function ChatPage() {
     }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const [usePersonalAnalysis, setUsePersonalAnalysis] = useState(false);
   const chatAreaRef = useRef<HTMLDivElement>(null);
 
@@ -60,23 +68,59 @@ export default function ChatPage() {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
+  
+  const handleSpeak = (text: string) => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    window.speechSynthesis.speak(utterance);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+    if ((!inputValue.trim() && !selectedImage) || isLoading) return;
+
+    let imageUrl = '';
+    if (selectedImage) {
+      imageUrl = URL.createObjectURL(selectedImage);
+    }
 
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: inputValue.trim(),
+      imageUrl: imageUrl
     };
 
+    const imageToProcess = selectedImage; // Store reference before clearing
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
+    setSelectedImage(null);
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('access_token') || '';
+      
+      let finalQuery = userMsg.content;
+      
+      // If there's an image, analyze it first and prepend to query
+      if (imageToProcess) {
+        setIsLoading(true); // Ensure loading is shown during analysis
+        const visionResult = await analyzeInjury(imageToProcess, token);
+        finalQuery = `[IMAGE ANALYSIS CONTEXT]:\n${visionResult.analysis}\n\n[USER QUERY]:\n${userMsg.content || "Based on the image above, what can you tell me?"}`;
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/v1/chat/query`, {
         method: 'POST',
         headers: {
@@ -84,7 +128,7 @@ export default function ChatPage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ 
-          query: userMsg.content,
+          query: finalQuery,
           use_personal_analysis: usePersonalAnalysis
         }),
       });
@@ -185,6 +229,30 @@ export default function ChatPage() {
                   >
                     {msg.content}
                   </ReactMarkdown>
+                  {msg.imageUrl && (
+                    <div className={styles.messageImageContainer}>
+                      <img src={msg.imageUrl} alt="Uploaded attachment" className={styles.messageImage} />
+                    </div>
+                  )}
+                  {msg.role === 'ai' && (
+                    <button 
+                      className={`${styles.speakBtn} ${isSpeaking ? styles.speaking : ''}`} 
+                      onClick={() => handleSpeak(msg.content)}
+                      title={isSpeaking ? "Stop reading" : "Read aloud"}
+                    >
+                      {isSpeaking ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                        </svg>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -207,17 +275,46 @@ export default function ChatPage() {
 
         <div className={styles.inputArea}>
           <div className={styles.inputContainer}>
-            <input 
-              className={styles.inputBox}
-              placeholder="Ask your medical query..."
+            <PhotoUpload onImageSelect={setSelectedImage} selectedImage={selectedImage} />
+            <button 
+              className={styles.cameraBtn} 
+              onClick={() => setShowCamera(true)}
+              title="Take Photo"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </button>
+            <VoiceInput 
+              onTranscript={(text) => setInputValue(prev => prev + (prev ? ' ' : '') + text)} 
+              onRecordingStateChange={setIsRecording}
+              isLoading={isLoading} 
+            />
+            <div style={{ position: 'relative', flex: 1 }}>
+              {isRecording && (
+                <div className={styles.recordingOverlay}>
+                  <div className={styles.waveContainer}>
+                    <div className={styles.wave}></div>
+                    <div className={styles.wave}></div>
+                    <div className={styles.wave}></div>
+                    <div className={styles.wave}></div>
+                  </div>
+                  <span>Listening...</span>
+                </div>
+              )}
+              <input 
+                className={`${styles.inputBox} ${isRecording ? styles.inputRecording : ''}`}
+              placeholder={isRecording ? "" : "Ask your medical query..."}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e as any)}
-              disabled={isLoading}
+              disabled={isLoading || isRecording}
             />
-            <button className={styles.sendBtn} onClick={handleSubmit} disabled={!inputValue.trim() || isLoading}>
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
-            </button>
+              <button className={styles.sendBtn} onClick={handleSubmit} disabled={(!inputValue.trim() && !selectedImage) || isLoading || isRecording}>
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
           </div>
           
           <div className={styles.toggleBar}>
@@ -236,6 +333,13 @@ export default function ChatPage() {
             </span>
           </div>
         </div>
+
+        {showCamera && (
+          <CameraCapture 
+            onCapture={(file) => setSelectedImage(file)} 
+            onClose={() => setShowCamera(false)} 
+          />
+        )}
       </main>
     </div>
   );
