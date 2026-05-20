@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
+from urllib.parse import urlparse, parse_qsl
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
@@ -11,28 +11,35 @@ db_url = settings.DATABASE_URL
 if db_url.startswith("libsql://"):
     db_url = db_url.replace("libsql://", "sqlite+libsql://", 1)
 
-# For libSQL/Turso databases, make sure authToken is appended if available
+# Engine configuration supporting both PostgreSQL, SQLite, and libSQL
+connect_args = {}
+
 if db_url.startswith("sqlite+libsql://"):
-    token = os.getenv("TURSO_AUTH_TOKEN") or os.getenv("LIBSQL_AUTH_TOKEN")
-    
+    # Parse URL to extract query parameters
     parsed = urlparse(db_url)
     query_params = dict(parse_qsl(parsed.query))
     
-    # If we have a token, add it to query params if not already present
-    if token and "authToken" not in query_params:
-        query_params["authToken"] = token
+    # Extract token from env variables or URL query params (both camelCase and snake_case)
+    token = (
+        os.getenv("TURSO_AUTH_TOKEN")
+        or os.getenv("LIBSQL_AUTH_TOKEN")
+        or query_params.get("authToken")
+        or query_params.get("auth_token")
+    )
+    
+    # Pass token in connect_args as expected by the libsql driver
+    if token:
+        connect_args["auth_token"] = token
         
-    # Enforce secure connection for remote Turso databases
-    if "localhost" not in parsed.netloc and "127.0.0.1" not in parsed.netloc:
-        if "secure" not in query_params:
-            query_params["secure"] = "true"
-            
-    new_query = urlencode(query_params)
-    db_url = urlunparse(parsed._replace(query=new_query))
+    # Check if secure connection is required (defaults to True for remote URLs)
+    secure_val = query_params.get("secure", "true")
+    secure = secure_val.lower() == "true"
+    if "localhost" in parsed.netloc or "127.0.0.1" in parsed.netloc:
+        secure = False
+    
+    connect_args["secure"] = secure
 
-# Engine configuration supporting both PostgreSQL, SQLite, and libSQL
-connect_args = {}
-if db_url.startswith("sqlite") and not db_url.startswith("sqlite+libsql"):
+elif db_url.startswith("sqlite") and not db_url.startswith("sqlite+libsql"):
     connect_args = {"check_same_thread": False, "timeout": 15}
 elif not db_url.startswith("sqlite"):
     connect_args = {"connect_timeout": 10}
@@ -46,4 +53,5 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
