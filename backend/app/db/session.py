@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlparse, parse_qsl
+from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
@@ -23,8 +23,8 @@ if db_url.startswith("sqlite+libsql://"):
     token = (
         os.getenv("TURSO_AUTH_TOKEN")
         or os.getenv("LIBSQL_AUTH_TOKEN")
-        or query_params.get("authToken")
-        or query_params.get("auth_token")
+        or query_params.pop("authToken", None)
+        or query_params.pop("auth_token", None)
     )
     
     # Pass token in connect_args as expected by the libsql driver
@@ -32,12 +32,14 @@ if db_url.startswith("sqlite+libsql://"):
         connect_args["auth_token"] = token
         
     # Check if secure connection is required (defaults to True for remote URLs)
-    secure_val = query_params.get("secure", "true")
-    secure = secure_val.lower() == "true"
-    if "localhost" in parsed.netloc or "127.0.0.1" in parsed.netloc:
-        secure = False
-    
-    connect_args["secure"] = secure
+    if "localhost" not in parsed.netloc and "127.0.0.1" not in parsed.netloc:
+        if "secure" not in query_params:
+            query_params["secure"] = "true"
+    else:
+        query_params.pop("secure", None)
+        
+    new_query = urlencode(query_params)
+    db_url = urlunparse(parsed._replace(query=new_query))
 
 elif db_url.startswith("sqlite") and not db_url.startswith("sqlite+libsql"):
     connect_args = {"check_same_thread": False, "timeout": 15}
